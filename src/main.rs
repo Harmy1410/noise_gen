@@ -1,3 +1,4 @@
+use image;
 use noise::{
     core::perlin::{perlin_2d, perlin_3d, perlin_4d},
     permutationtable::PermutationTable,
