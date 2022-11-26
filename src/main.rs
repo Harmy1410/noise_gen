@@ -1,9 +1,10 @@
 use image;
 use noise::{
-    core::perlin::{perlin_2d, perlin_3d, perlin_4d},
+    core::{open_simplex::open_simplex_4d, perlin::perlin_4d},
     permutationtable::PermutationTable,
     utils::*,
 };
+use rand::prelude::*;
 
 // #[allow(dead_code)]
 // #[cfg(feature = "images")]
@@ -28,66 +29,39 @@ pub fn write_to_file(map: &NoiseMap, filename: &str) {
     }
 
     let _ = image::save_buffer(
-        &Path::new(&filename),
+        &Path::new(&target),
         &*pixels,
         map.size().0 as u32,
         map.size().1 as u32,
         image::ColorType::L8,
     );
 
-    println!("\nFinished generating {}", filename);
+    println!("\nFinished generating {}", target);
 }
 
 fn main() {
-    let hasher = PermutationTable::new(0);
-    write_to_file(
-        &PlaneMapBuilder::new_fn(perlin_2d, &hasher)
-            .set_size(1024, 1024)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build(),
-        "perlin_2d_seed=0.png",
-    );
-    write_to_file(
-        &PlaneMapBuilder::new_fn(perlin_3d, &hasher)
-            .set_size(1024, 1024)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build(),
-        "perlin_3d_seed=0.png",
-    );
-    write_to_file(
-        &PlaneMapBuilder::new_fn(perlin_4d, &hasher)
-            .set_size(1024, 1024)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build(),
-        "perlin_4d_seed=0.png",
-    );
-
-    let hasher = PermutationTable::new(1);
-    write_to_file(
-        &PlaneMapBuilder::new_fn(perlin_2d, &hasher)
-            .set_size(1024, 1024)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build(),
-        "perlin_2d_seed=1.png",
-    );
-    write_to_file(
-        &PlaneMapBuilder::new_fn(perlin_3d, &hasher)
-            .set_size(1024, 1024)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build(),
-        "perlin_3d_seed=1.png",
-    );
-    write_to_file(
-        &PlaneMapBuilder::new_fn(perlin_4d, &hasher)
-            .set_size(1024, 1024)
-            .set_x_bounds(-5.0, 5.0)
-            .set_y_bounds(-5.0, 5.0)
-            .build(),
-        "perlin_4d_seed=1.png",
-    );
+    let mut rng = thread_rng();
+    let xb = [32.0, 64.0, 128.0, 256.0, 512.0, 1024.0, 2048.0, 4096.0];
+    let yb = &xb.map(|i| i / 1.777777);
+    let img_size = (1920, 1080);
+    // let img_size = (4096, 2160);
+    let hasher = PermutationTable::new(rng.gen_range(0..265));
+    for i in 0..xb.len() {
+        write_to_file(
+            &PlaneMapBuilder::new_fn(open_simplex_4d, &hasher)
+                .set_size(img_size.0, img_size.1)
+                .set_x_bounds(-xb[i], xb[i])
+                .set_y_bounds(-yb[i], yb[i])
+                .build(),
+            format!(
+                "open_simplex_4d_{}x{}_test_b{}x{}_{}.png",
+                img_size.0,
+                img_size.1,
+                xb[i],
+                yb[i] as usize,
+                rng.gen::<f32>()
+            )
+            .as_str(),
+        );
+    }
 }
