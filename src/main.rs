@@ -1,9 +1,5 @@
 use image;
-use noise::{
-    core::{open_simplex::open_simplex_4d, perlin::perlin_4d},
-    permutationtable::PermutationTable,
-    utils::*,
-};
+use noise::{core::open_simplex::open_simplex_4d, permutationtable::PermutationTable, utils::*};
 use rand::prelude::*;
 
 // #[allow(dead_code)]
@@ -11,7 +7,7 @@ use rand::prelude::*;
 pub fn write_to_file(map: &NoiseMap, filename: &str) {
     use std::{fs, path::Path};
 
-    let target_dir = Path::new("example_images/");
+    let target_dir = Path::new("imgs/");
 
     if !target_dir.exists() {
         fs::create_dir(target_dir).expect("failed to create example_images directory");
