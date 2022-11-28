@@ -1,4 +1,4 @@
-use image;
+use image::{self, ImageBuffer, Rgb};
 use noise::{core::open_simplex::open_simplex_4d, permutationtable::PermutationTable, utils::*};
 use rand::prelude::*;
 
@@ -24,23 +24,29 @@ pub fn write_to_file(map: &NoiseMap, filename: &str) {
         pixels.push(((i * 0.5 + 0.5).clamp(0.0, 1.0) * 255.0) as u8);
     }
 
-    let _ = image::save_buffer(
-        &Path::new(&target),
-        &*pixels,
-        map.size().0 as u32,
-        map.size().1 as u32,
-        image::ColorType::L8,
-    );
+    let img_buf: ImageBuffer<Rgb<_>, Vec<u8>> =
+        ImageBuffer::from_vec(map.size().0 as u32, map.size().1 as u32, pixels).unwrap();
+
+    let img_buf = image::imageops::blur(&img_buf, 2.0);
+
+    let _ = img_buf.save(&target);
+    // let _ = image::save_buffer(
+    //     &Path::new(&target),
+    //     &*pixels,
+    //     map.size().0 as u32,
+    //     map.size().1 as u32,
+    //     image::ColorType::L8,
+    // );
 
     println!("\nFinished generating {}", target);
 }
 
 fn main() {
     let mut rng = thread_rng();
-    let xb = [32.0, 64.0, 128.0, 256.0, 512.0, 1024.0, 2048.0, 4096.0];
+    let xb = [1024.0];
     let yb = &xb.map(|i| i / 1.777777);
-    let img_size = (1920, 1080);
-    // let img_size = (4096, 2160);
+    // let img_size = (1920, 1080);
+    let img_size = (4096, 2160);
     let hasher = PermutationTable::new(rng.gen_range(0..265));
     for i in 0..xb.len() {
         write_to_file(
@@ -50,7 +56,7 @@ fn main() {
                 .set_y_bounds(-yb[i], yb[i])
                 .build(),
             format!(
-                "open_simplex_4d_{}x{}_test_b{}x{}_{}.png",
+                "open_simplex_4d_withBlur_{}x{}_test_b{}x{}_{}.png",
                 img_size.0,
                 img_size.1,
                 xb[i],
