@@ -1,10 +1,10 @@
-use image::{self, ImageBuffer, Rgb};
+use image::{self, ImageBuffer, Luma, Rgb};
 use noise::{core::open_simplex::open_simplex_4d, permutationtable::PermutationTable, utils::*};
 use rand::prelude::*;
 
 // #[allow(dead_code)]
 // #[cfg(feature = "images")]
-pub fn write_to_file(map: &NoiseMap, filename: &str) {
+pub fn write_to_file(map: &NoiseMap, filename: &str, blur_amt: f32) {
     use std::{fs, path::Path};
 
     let target_dir = Path::new("imgs/");
@@ -25,17 +25,18 @@ pub fn write_to_file(map: &NoiseMap, filename: &str) {
         pixels.push(((i * 0.5 + 0.5).clamp(0.0, 1.0) * 255.0) as u8);
     }
 
-    let img_buf: ImageBuffer<Rgb<_>, Vec<u8>> =
+    let img_buf: ImageBuffer<Luma<_>, Vec<u8>> =
         match ImageBuffer::from_vec(map.size().0 as u32, map.size().1 as u32, pixels) {
             Some(x) => x,
             None => panic!("something is wrong"),
         };
 
     println!("--- Image Blur ---");
-    let img_buf = image::imageops::blur(&img_buf, 2.0);
+    let img_buf = image::imageops::blur(&img_buf, blur_amt);
 
     println!("--- Saving ---");
     let _ = img_buf.save(&target);
+
     // let _ = image::save_buffer(
     //     &Path::new(&target),
     //     &*pixels,
@@ -47,12 +48,15 @@ pub fn write_to_file(map: &NoiseMap, filename: &str) {
 
 fn main() {
     let mut rng = thread_rng();
-    let xb = [1024.0];
+    let xb = [1500.0];
     let yb = &xb.map(|i| i / 1.777777);
     // let img_size = (1920, 1080);
     let img_size = (4096, 2160);
+    let img_blur = 2.0;
     let hasher = PermutationTable::new(rng.gen_range(0..265));
+
     for i in 0..xb.len() {
+        println!("--- Loop {} ---", i);
         write_to_file(
             &PlaneMapBuilder::new_fn(open_simplex_4d, &hasher)
                 .set_size(img_size.0, img_size.1)
@@ -68,6 +72,7 @@ fn main() {
                 rng.gen::<f32>()
             )
             .as_str(),
+            img_blur,
         );
     }
 }
