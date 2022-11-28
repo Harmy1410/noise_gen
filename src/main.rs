@@ -20,15 +20,21 @@ pub fn write_to_file(map: &NoiseMap, filename: &str) {
     let (width, height) = map.size();
     let mut pixels: Vec<u8> = Vec::with_capacity(width * height);
 
+    println!("--- Arranging pixels ---");
     for i in map.iter() {
         pixels.push(((i * 0.5 + 0.5).clamp(0.0, 1.0) * 255.0) as u8);
     }
 
     let img_buf: ImageBuffer<Rgb<_>, Vec<u8>> =
-        ImageBuffer::from_vec(map.size().0 as u32, map.size().1 as u32, pixels).unwrap();
+        match ImageBuffer::from_vec(map.size().0 as u32, map.size().1 as u32, pixels) {
+            Some(x) => x,
+            None => panic!("something is wrong"),
+        };
 
+    println!("--- Image Blur ---");
     let img_buf = image::imageops::blur(&img_buf, 2.0);
 
+    println!("--- Saving ---");
     let _ = img_buf.save(&target);
     // let _ = image::save_buffer(
     //     &Path::new(&target),
@@ -37,8 +43,6 @@ pub fn write_to_file(map: &NoiseMap, filename: &str) {
     //     map.size().1 as u32,
     //     image::ColorType::L8,
     // );
-
-    println!("\nFinished generating {}", target);
 }
 
 fn main() {
