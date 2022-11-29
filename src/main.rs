@@ -1,4 +1,4 @@
-use image::{self, ImageBuffer, Luma, Rgb};
+use image::{self, ImageBuffer, Luma};
 use noise::{core::open_simplex::open_simplex_4d, permutationtable::PermutationTable, utils::*};
 use rand::prelude::*;
 
@@ -7,7 +7,7 @@ use rand::prelude::*;
 pub fn write_to_file(map: &NoiseMap, filename: &str, blur_amt: f32) {
     use std::{fs, path::Path};
 
-    let target_dir = Path::new("imgs/");
+    let target_dir = Path::new("noise_imgs/");
 
     if !target_dir.exists() {
         fs::create_dir(target_dir).expect("failed to create example_images directory");
